@@ -29,6 +29,8 @@ Create a `config/config.env` file with:
 NODE_ENV=development
 PORT=3000
 MONGO_URI=your_mongodb_connection_string
+GEOCODER_PROVIDER=provider
+GEOCODER_API_KEY=provider_consumer_key
 ```
 
 ## API Endpoints
