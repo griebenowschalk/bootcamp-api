@@ -1,4 +1,6 @@
+import geocoder from '@/utils/geocoder';
 import mongoose from 'mongoose';
+import slugify from 'slugify';
 
 const BootcampSchema = new mongoose.Schema({
   name: {
@@ -35,24 +37,24 @@ const BootcampSchema = new mongoose.Schema({
   address: {
     type: String,
     required: [true, 'Please add an address'],
-    location: {
-      // GeoJSON Point https://mongoosejs.com/docs/geojson.html
-      type: {
-        type: String,
-        enum: ['Point'],
-      },
-      coordinates: {
-        type: [Number],
-        index: '2dsphere',
-        required: [true, 'Please add coordinates'],
-      },
-      formattedAddress: String,
-      street: String,
-      city: String,
-      state: String,
-      zipcode: String,
-      country: String,
+    select: false, // Don't include in queries by default
+  },
+  location: {
+    // GeoJSON Point https://mongoosejs.com/docs/geojson.html
+    type: {
+      type: String,
+      enum: ['Point'],
     },
+    coordinates: {
+      type: [Number],
+      index: '2dsphere',
+    },
+    formattedAddress: String,
+    street: String,
+    city: String,
+    state: String,
+    zipcode: String,
+    country: String,
   },
   careers: {
     type: [String],
@@ -96,6 +98,32 @@ const BootcampSchema = new mongoose.Schema({
     type: Boolean,
     default: false,
   },
+});
+
+// Create slug from name i.e. turn South Africa into south-africa
+// https://mongoosejs.com/docs/api/schema.html#Schema.prototype.pre()
+BootcampSchema.pre('save', function (next) {
+  this.slug = slugify(this.name, { lower: true });
+  next();
+});
+
+// Geocode and create location field
+BootcampSchema.pre('save', async function (next) {
+  const loc = await geocoder().geocode(this.address);
+  this.location = {
+    type: 'Point',
+    coordinates: [loc[0]?.longitude ?? 0, loc[0]?.latitude ?? 0],
+    formattedAddress: loc[0]?.formattedAddress ?? '',
+    street: loc[0]?.streetName ?? '',
+    city: loc[0]?.city ?? '',
+    state: loc[0]?.stateCode ?? '',
+    zipcode: loc[0]?.zipcode ?? '',
+    country: loc[0]?.country ?? '',
+  };
+
+  // Do not save address in DB
+  this.address = undefined as unknown as string;
+  next();
 });
 
 export default mongoose.model('Bootcamp', BootcampSchema);

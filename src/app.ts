@@ -4,6 +4,8 @@ import cors from 'cors';
 import morgan from 'morgan';
 import 'colors';
 import connectDB from '@/config/db';
+import errorHandler from '@/middleware/error';
+import asyncHandler from '@/middleware/async';
 
 // Load environment variables
 dotenv.config({ path: './config/config.env' });
@@ -26,6 +28,12 @@ app.use(express.urlencoded({ extended: true }));
 
 // Mounting routes
 app.use('/api/v1/bootcamps', bootcamps);
+
+// Error handler
+app.use(errorHandler);
+
+// Async handler
+app.use(asyncHandler);
 
 const PORT = process.env.PORT || 5000;
 
