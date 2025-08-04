@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /**
  * Query Parser Utility
  *
@@ -21,7 +22,6 @@ export const parseQuery = (query: any) => {
   const parsedQuery = JSON.parse(queryStr);
 
   // Restructure query for Mongoose
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const mongooseQuery: any = {};
 
   Object.keys(parsedQuery).forEach(key => {
