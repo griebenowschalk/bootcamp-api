@@ -20,6 +20,8 @@ A RESTful API for managing bootcamps built with Node.js, TypeScript, and Express
 - `npm run lint:fix` - Auto-fix linting issues
 - `npm run format` - Format code with Prettier
 - `npm run format:check` - Check code formatting
+- `npm run seeder:import` - Import sample data from `_data/bootcamps.json`
+- `npm run seeder:delete` - Delete all bootcamp data from database
 
 ## Environment Variables
 
@@ -32,6 +34,14 @@ MONGO_URI=your_mongodb_connection_string
 GEOCODER_PROVIDER=provider
 GEOCODER_API_KEY=provider_consumer_key
 ```
+
+## Data Seeding
+
+The project includes sample data for testing:
+
+- `_data/bootcamps.json` - Sample bootcamp data for seeding
+- Use `npm run seeder:import` to populate the database with sample data
+- Use `npm run seeder:delete` to clear all bootcamp data
 
 ## API Endpoints
 

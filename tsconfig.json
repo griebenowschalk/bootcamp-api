@@ -46,6 +46,6 @@
       "@/config/*": ["config/*"]
     }
   },
-  "include": ["src/**/*", "config/**/*"],
+  "include": ["src/**/*", "config/**/*", "seeder.ts"],
   "exclude": ["node_modules", "dist"]
 }
