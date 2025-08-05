@@ -3,7 +3,7 @@ import ErrorResponse from '@/utils/errorResponse';
 import asyncHandler from '@/middleware/async';
 import Bootcamp from '@/models/Bootcamp';
 import { parseQuery } from '@/utils/queryParser';
-
+import type { QueryInput } from '@/types/queryTypes';
 import geocoder from '@/utils/geocoder';
 
 /**
@@ -12,7 +12,7 @@ import geocoder from '@/utils/geocoder';
  * @access Public
  */
 const getBootcamps = asyncHandler(async (req: Request, res: Response) => {
-  const mongooseQuery = parseQuery(req.query);
+  const mongooseQuery = parseQuery(req.query as QueryInput);
   const bootcamps = await Bootcamp.find(mongooseQuery);
   res
     .status(200)

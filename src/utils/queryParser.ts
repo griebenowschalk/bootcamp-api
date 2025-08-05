@@ -1,4 +1,11 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
+import type {
+  AllowedOperators,
+  ParsedQuery,
+  QueryInput,
+  MongooseOperator,
+  FieldQueryValueMap,
+} from '@/types/queryTypes';
+
 /**
  * Query Parser Utility
  *
@@ -15,41 +22,43 @@
  * @param query - Express request query object
  * @returns Mongoose-compatible query object
  */
-export const parseQuery = (query: any) => {
-  // Convert query operators to MongoDB format (gt -> $gt, lte -> $lte, etc.)
-  let queryStr = JSON.stringify(query);
-  queryStr = queryStr.replace(/\b(gt|gte|lt|lte|in)\b/g, match => `$${match}`);
-  const parsedQuery = JSON.parse(queryStr);
+export const parseQuery = (query: QueryInput): ParsedQuery => {
+  // Define allowed MongoDB comparison operators
+  const allowedOperators = ['gt', 'gte', 'lt', 'lte', 'in'] as const;
+  const mongooseQuery: ParsedQuery = {};
 
-  // Restructure query for Mongoose
-  const mongooseQuery: any = {};
+  // Process each query parameter
+  Object.entries(query).forEach(([key, value]) => {
+    // Check if the key contains an operator (e.g., "averageCost[lte]")
+    const match = key.match(/^(\w+)\[(\w+)\]$/);
 
-  Object.keys(parsedQuery).forEach(key => {
-    if (key.includes('[') && key.includes(']')) {
-      // Handle nested operators like "averageCost[$lte]"
-      const match = key.match(/^(.+)\[(\$[^\]]+)\]$/);
-      if (match) {
-        const [, fieldName, operator] = match;
-        if (fieldName && operator) {
-          if (!mongooseQuery[fieldName]) {
-            mongooseQuery[fieldName] = {};
-          }
-          let value = parsedQuery[key];
+    if (match) {
+      // Extract field name and operator from the key
+      const [, field, op] = match;
 
-          // Convert numeric fields to numbers for proper comparison
-          if (
-            (fieldName === 'averageCost' || fieldName === 'averageRating') &&
-            typeof value === 'string'
-          ) {
-            value = Number(value);
-          }
+      // Validate that both field and operator exist, and operator is allowed
+      if (field && op && allowedOperators.includes(op as AllowedOperators)) {
+        // Convert operator to MongoDB format (e.g., "lte" -> "$lte")
+        const mongoOp = `$${op}` as MongooseOperator;
 
-          mongooseQuery[fieldName][operator] = value;
+        // Initialize field object if it doesn't exist
+        if (!mongooseQuery[field]) {
+          mongooseQuery[field] = {} as FieldQueryValueMap;
         }
+
+        // Convert string numbers to actual numbers for proper comparison
+        // This handles cases like "10000" -> 10000 for numeric fields
+        const parsedValue =
+          typeof value === 'string' && !isNaN(Number(value))
+            ? Number(value)
+            : value;
+
+        // Add the operator and value to the field object
+        (mongooseQuery[field] as FieldQueryValueMap)[mongoOp] = parsedValue;
       }
     } else {
-      // Handle regular fields without operators
-      mongooseQuery[key] = parsedQuery[key];
+      // Handle regular fields without operators (e.g., "name", "careers")
+      mongooseQuery[key] = value;
     }
   });
 
