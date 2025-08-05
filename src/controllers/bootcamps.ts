@@ -2,9 +2,14 @@ import type { NextFunction, Request, Response } from 'express';
 import ErrorResponse from '@/utils/errorResponse';
 import asyncHandler from '@/middleware/async';
 import Bootcamp from '@/models/Bootcamp';
-import { parseQuery } from '@/utils/queryParser';
+import {
+  handleQueryFields,
+  queryPagination,
+  parseQuery,
+} from '@/middleware/query';
 import type { QueryInput } from '@/types/queryTypes';
 import geocoder from '@/utils/geocoder';
+import type { Document, Query } from 'mongoose';
 
 /**
  * @description Get all bootcamps
@@ -13,10 +18,20 @@ import geocoder from '@/utils/geocoder';
  */
 const getBootcamps = asyncHandler(async (req: Request, res: Response) => {
   const mongooseQuery = parseQuery(req.query as QueryInput);
-  const bootcamps = await Bootcamp.find(mongooseQuery);
-  res
-    .status(200)
-    .json({ success: true, count: bootcamps.length, data: bootcamps });
+
+  let query: Query<Document[], Document> = Bootcamp.find(mongooseQuery);
+
+  query = handleQueryFields(req, query);
+
+  const { query: queryObject, pagination } = await queryPagination(req, query);
+
+  const bootcamps = await queryObject;
+  res.status(200).json({
+    success: true,
+    count: bootcamps.length,
+    pagination,
+    data: bootcamps,
+  });
 });
 
 /**
