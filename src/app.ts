@@ -15,6 +15,7 @@ connectDB();
 
 // Routes
 import bootcamps from '@/routes/bootcamps';
+import courses from '@/routes/courses';
 
 const app = express();
 
@@ -28,6 +29,7 @@ app.use(express.urlencoded({ extended: true }));
 
 // Mounting routes
 app.use('/api/v1/bootcamps', bootcamps);
+app.use('/api/v1/courses', courses);
 
 // Error handler
 app.use(errorHandler);

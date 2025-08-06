@@ -19,7 +19,8 @@ import type { Document, Query } from 'mongoose';
 const getBootcamps = asyncHandler(async (req: Request, res: Response) => {
   const mongooseQuery = parseQuery(req.query as QueryInput);
 
-  let query: Query<Document[], Document> = Bootcamp.find(mongooseQuery);
+  let query: Query<Document[], Document> =
+    Bootcamp.find(mongooseQuery).populate('courses');
 
   query = handleQueryFields(req, query);
 
