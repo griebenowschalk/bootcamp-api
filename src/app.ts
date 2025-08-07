@@ -3,6 +3,8 @@ import dotenv from 'dotenv';
 import cors from 'cors';
 import morgan from 'morgan';
 import fileUpload from 'express-fileupload';
+import cookieParser from 'cookie-parser';
+import path from 'path';
 import 'colors';
 import connectDB from '@/config/db';
 import errorHandler from '@/middleware/error';
@@ -17,7 +19,7 @@ connectDB();
 // Routes
 import bootcamps from '@/routes/bootcamps';
 import courses from '@/routes/courses';
-import path from 'path';
+import auth from '@/routes/auth';
 
 const app = express();
 
@@ -32,12 +34,16 @@ app.use(express.urlencoded({ extended: true }));
 // File uploading
 app.use(fileUpload());
 
+// Cookie parser
+app.use(cookieParser());
+
 // Set static folder
 app.use(express.static(path.join(process.cwd(), 'public')));
 
 // Mounting routes
 app.use('/api/v1/bootcamps', bootcamps);
 app.use('/api/v1/courses', courses);
+app.use('/api/v1/auth', auth);
 
 // Error handler
 app.use(errorHandler);

@@ -32,13 +32,7 @@ export const advancedResults = <T extends Document>(
     );
 
     if (populate) {
-      if (Array.isArray(populate)) {
-        populate.forEach(field => {
-          queryObject = queryObject.populate(field);
-        });
-      } else {
-        queryObject = queryObject.populate(populate);
-      }
+      queryObject = queryObject.populate(populate);
     }
 
     const results = await queryObject;

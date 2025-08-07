@@ -1,7 +1,28 @@
 import geocoder from '@/utils/geocoder';
-import mongoose from 'mongoose';
+import mongoose, { Document } from 'mongoose';
 import slugify from 'slugify';
 import Course from './Course';
+
+export interface IBootcamp extends Document {
+  name: string;
+  slug: string;
+  description: string;
+  website: string;
+  phone: string;
+  email: string;
+  address: string;
+  location: {
+    type: string;
+    coordinates: number[];
+  };
+  careers: string[];
+  averageRating: number;
+  averageCost: number;
+  photo: string;
+  createdAt: Date;
+  housing: boolean;
+  jobAssistance: boolean;
+}
 
 const BootcampSchema = new mongoose.Schema(
   {
@@ -149,4 +170,4 @@ BootcampSchema.virtual('courses', {
   justOne: false,
 });
 
-export default mongoose.model('Bootcamp', BootcampSchema);
+export default mongoose.model<IBootcamp>('Bootcamp', BootcampSchema);

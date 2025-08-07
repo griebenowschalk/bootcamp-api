@@ -1,6 +1,17 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import mongoose from 'mongoose';
+import mongoose, { Document } from 'mongoose';
 import Bootcamp from './Bootcamp';
+
+export interface ICourse extends Document {
+  title: string;
+  description: string;
+  weeks: string;
+  tuition: number;
+  minimumSkill: string;
+  scholarshipAvailable: boolean;
+  createdAt: Date;
+  bootcamp: string;
+}
 
 const CourseSchema = new mongoose.Schema({
   title: {
@@ -85,4 +96,4 @@ CourseSchema.pre('deleteOne', async function (this: any) {
   }
 });
 
-export default mongoose.model('Course', CourseSchema);
+export default mongoose.model<ICourse>('Course', CourseSchema);

@@ -1,4 +1,5 @@
-import type { Response } from 'express';
+import type { Request, Response } from 'express';
+import type { IUser } from '@/models/User';
 import type { Document } from 'mongoose';
 
 export type FieldQueryValue =
@@ -35,4 +36,8 @@ export interface AdvanceResponse extends Response {
     count: number;
     pagination: Pagination;
   };
+}
+
+export interface UserRequest extends Request {
+  user?: IUser;
 }

@@ -8,39 +8,44 @@ import {
   getBootcampsInRadius,
   uploadBootcampPhoto,
 } from '@/controllers/bootcamps';
-
+import { protect, authorize } from '@/middleware/auth';
 import { advancedResults } from '@/middleware/query';
-import Bootcamp from '@/models/Bootcamp';
+import Bootcamp, { type IBootcamp } from '@/models/Bootcamp';
 
 // Include other resource routers
 import courseRouter from '@/routes/courses';
-import type { Document, Model, PopulateOptions } from 'mongoose';
+import type { Model, PopulateOptions } from 'mongoose';
 
 const router = express.Router();
 
 // Re-route into other resource routers
 router.use('/:bootcampId/courses', courseRouter);
 
-router.route('/radius/:zipcode/:distance').get(getBootcampsInRadius);
+router.get('/radius/:zipcode/:distance', getBootcampsInRadius);
 
-router.put('/:id/photo', uploadBootcampPhoto);
+router.put(
+  '/:id/photo',
+  protect,
+  authorize('publisher', 'admin'),
+  uploadBootcampPhoto
+);
 
 router
   .route('/')
   .get(
-    advancedResults(Bootcamp as unknown as Model<Document<typeof Bootcamp>>, [
+    advancedResults(Bootcamp as unknown as Model<IBootcamp>, [
       {
         path: 'courses',
       } as PopulateOptions,
     ]),
     getBootcamps
   )
-  .post(createBootcamp);
+  .post(protect, authorize('publisher', 'admin'), createBootcamp);
 
 router
   .route('/:id')
   .get(getBootcamp)
-  .put(updateBootcamp)
-  .delete(deleteBootcamp);
+  .put(protect, authorize('publisher', 'admin'), updateBootcamp)
+  .delete(protect, authorize('publisher', 'admin'), deleteBootcamp);
 
 export default router;
