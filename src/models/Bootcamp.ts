@@ -22,6 +22,7 @@ export interface IBootcamp extends Document {
   createdAt: Date;
   housing: boolean;
   jobAssistance: boolean;
+  user: mongoose.Types.ObjectId;
 }
 
 const BootcampSchema = new mongoose.Schema(
@@ -121,6 +122,11 @@ const BootcampSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    user: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      required: true,
+    },
   },
   {
     toJSON: { virtuals: true },
@@ -156,7 +162,7 @@ BootcampSchema.pre('save', async function (next) {
 
 // Cascade delete courses when a bootcamp is deleted
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-BootcampSchema.pre('findOneAndDelete', async function (this: any, next) {
+BootcampSchema.pre('deleteOne', async function (this: any, next) {
   await Course.deleteMany({ bootcamp: this.getQuery()._id });
   next();
 });

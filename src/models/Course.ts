@@ -11,6 +11,7 @@ export interface ICourse extends Document {
   scholarshipAvailable: boolean;
   createdAt: Date;
   bootcamp: string;
+  user: string;
 }
 
 const CourseSchema = new mongoose.Schema({
@@ -47,6 +48,11 @@ const CourseSchema = new mongoose.Schema({
   bootcamp: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Bootcamp',
+    required: true,
+  },
+  user: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
     required: true,
   },
 });
