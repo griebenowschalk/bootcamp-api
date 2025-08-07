@@ -2,6 +2,7 @@ import express from 'express';
 import dotenv from 'dotenv';
 import cors from 'cors';
 import morgan from 'morgan';
+import fileUpload from 'express-fileupload';
 import 'colors';
 import connectDB from '@/config/db';
 import errorHandler from '@/middleware/error';
@@ -16,6 +17,7 @@ connectDB();
 // Routes
 import bootcamps from '@/routes/bootcamps';
 import courses from '@/routes/courses';
+import path from 'path';
 
 const app = express();
 
@@ -26,6 +28,12 @@ if (process.env.NODE_ENV === 'development') {
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+// File uploading
+app.use(fileUpload());
+
+// Set static folder
+app.use(express.static(path.join(process.cwd(), 'public')));
 
 // Mounting routes
 app.use('/api/v1/bootcamps', bootcamps);

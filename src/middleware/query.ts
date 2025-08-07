@@ -5,13 +5,54 @@ import type {
   QueryInput,
   MongooseOperator,
   FieldQueryValueMap,
+  AdvanceResponse,
+  Pagination,
 } from '@/types/queryTypes';
-import type { Document, Query } from 'mongoose';
-import type { Request } from 'express';
-import Bootcamp from '@/models/Bootcamp';
+import type { Document, Model, PopulateOptions, Query } from 'mongoose';
+import type { NextFunction, Request } from 'express';
 
 const DEFAULT_PAGE = 1;
 const DEFAULT_LIMIT = 25;
+
+export const advancedResults = <T extends Document>(
+  model: Model<T>,
+  populate?: PopulateOptions[]
+) => {
+  return async (req: Request, res: AdvanceResponse, next: NextFunction) => {
+    const mongooseQuery = parseQuery(req.query as QueryInput);
+
+    let query: Query<Document[], Document> = model.find(mongooseQuery);
+
+    query = handleQueryFields(req, query);
+
+    let { queryObject, pagination } = await queryPagination<T>(
+      req,
+      query,
+      model
+    );
+
+    if (populate) {
+      if (Array.isArray(populate)) {
+        populate.forEach(field => {
+          queryObject = queryObject.populate(field);
+        });
+      } else {
+        queryObject = queryObject.populate(populate);
+      }
+    }
+
+    const results = await queryObject;
+
+    res.advancedResults = {
+      success: true,
+      count: results.length,
+      pagination,
+      data: results,
+    };
+
+    next();
+  };
+};
 
 /**
  * Query Parser Utility
@@ -73,19 +114,17 @@ export const parseQuery = (query: QueryInput): ParsedQuery => {
   return mongooseQuery;
 };
 
-export const queryPagination = async (
+export const queryPagination = async <T extends Document>(
   req: Request,
-  queryObject: Query<Document[], Document>
+  queryObject: Query<Document[], Document>,
+  model: Model<T>
 ) => {
   const pageNumber = parseInt(req.query.page as string, 10) || DEFAULT_PAGE;
   const limitNumber = parseInt(req.query.limit as string, 10) || DEFAULT_LIMIT;
   const startIndex = (pageNumber - 1) * limitNumber;
   const endIndex = pageNumber * limitNumber;
-  const total = await Bootcamp.countDocuments();
-  const pagination: {
-    next?: { page: number; limit: number };
-    prev?: { page: number; limit: number };
-  } = {};
+  const total = await model.countDocuments();
+  const pagination: Pagination = {};
 
   if (endIndex < total) {
     pagination.next = {
@@ -104,7 +143,7 @@ export const queryPagination = async (
   queryObject = queryObject.skip(startIndex).limit(limitNumber);
 
   return {
-    query: queryObject,
+    queryObject,
     pagination,
   };
 };

@@ -1,3 +1,6 @@
+import type { Response } from 'express';
+import type { Document } from 'mongoose';
+
 export type FieldQueryValue =
   | string
   | number
@@ -19,3 +22,17 @@ export type FieldQueryValueMap = {
 export type FieldQuery = FieldQueryValue | FieldQueryValueMap;
 
 export type ParsedQuery = Record<string, FieldQuery>;
+
+export type Pagination = {
+  next?: { page: number; limit: number };
+  prev?: { page: number; limit: number };
+};
+
+export interface AdvanceResponse extends Response {
+  advancedResults?: {
+    data: Document[];
+    success: boolean;
+    count: number;
+    pagination: Pagination;
+  };
+}

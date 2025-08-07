@@ -33,6 +33,8 @@ PORT=3000
 MONGO_URI=your_mongodb_connection_string
 GEOCODER_PROVIDER=provider
 GEOCODER_API_KEY=provider_consumer_key
+FILE_UPLOAD_PATH=./public/uploads
+MAX_FILE_UPLOAD=max_file_upload_size
 ```
 
 ## Data Seeding
@@ -40,13 +42,26 @@ GEOCODER_API_KEY=provider_consumer_key
 The project includes sample data for testing:
 
 - `_data/bootcamps.json` - Sample bootcamp data for seeding
+- `_data/courses.json` - Sample course data for seeding
 - Use `npm run seeder:import` to populate the database with sample data
 - Use `npm run seeder:delete` to clear all bootcamp data
 
 ## API Endpoints
+
+### Bootcamps
 
 - `GET /api/v1/bootcamps` - Get all bootcamps
 - `POST /api/v1/bootcamps` - Create a new bootcamp
 - `GET /api/v1/bootcamps/:id` - Get a single bootcamp
 - `PUT /api/v1/bootcamps/:id` - Update a bootcamp
 - `DELETE /api/v1/bootcamps/:id` - Delete a bootcamp
+- `GET /api/v1/bootcamps/radius/:zipcode/:distance` - Get bootcamps within a radius
+- `PUT /api/v1/bootcamps/:id/photo` - Upload a photo for a bootcamp
+
+### Courses
+
+- `GET /api/v1/courses` - Get all courses
+- `GET /api/v1/courses/:id` - Get a single course
+- `POST /api/v1/bootcamps/:bootcampId/courses` - Add a course to a bootcamp
+- `PUT /api/v1/courses/:id` - Update a course
+- `DELETE /api/v1/courses/:id` - Delete a course

@@ -61,7 +61,6 @@ CourseSchema.statics.getAverageCost = async function (
   try {
     // If no courses exist, set averageCost to 0
     const averageCost = obj.length > 0 ? Math.round(obj[0].averageCost) : 0;
-    console.log('averageCost'.blue.inverse, averageCost);
     await Bootcamp.findByIdAndUpdate(bootcampId, {
       averageCost,
     });

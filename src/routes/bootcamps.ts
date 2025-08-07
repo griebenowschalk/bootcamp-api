@@ -6,10 +6,15 @@ import {
   updateBootcamp,
   deleteBootcamp,
   getBootcampsInRadius,
+  uploadBootcampPhoto,
 } from '@/controllers/bootcamps';
+
+import { advancedResults } from '@/middleware/query';
+import Bootcamp from '@/models/Bootcamp';
 
 // Include other resource routers
 import courseRouter from '@/routes/courses';
+import type { Document, Model, PopulateOptions } from 'mongoose';
 
 const router = express.Router();
 
@@ -18,7 +23,19 @@ router.use('/:bootcampId/courses', courseRouter);
 
 router.route('/radius/:zipcode/:distance').get(getBootcampsInRadius);
 
-router.route('/').get(getBootcamps).post(createBootcamp);
+router.put('/:id/photo', uploadBootcampPhoto);
+
+router
+  .route('/')
+  .get(
+    advancedResults(Bootcamp as unknown as Model<Document<typeof Bootcamp>>, [
+      {
+        path: 'courses',
+      } as PopulateOptions,
+    ]),
+    getBootcamps
+  )
+  .post(createBootcamp);
 
 router
   .route('/:id')

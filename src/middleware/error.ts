@@ -8,8 +8,7 @@ const errorHandler = (
   res: Response,
   _next: NextFunction
 ) => {
-  let error = { ...err } as ErrorResponse;
-  console.log(err);
+  let error = err;
 
   // Cast error to ErrorResponse for bad ObjectId
   if (err.name === 'CastError') {

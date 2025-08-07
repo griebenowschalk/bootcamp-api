@@ -1,9 +1,9 @@
 import type { NextFunction, Request, Response } from 'express';
 import asyncHandler from '@/middleware/async';
 import Course from '@/models/Course';
-import type { Document, Query } from 'mongoose';
 import ErrorResponse from '@/utils/errorResponse';
 import Bootcamp from '@/models/Bootcamp';
+import type { AdvanceResponse } from '@/types/queryTypes';
 
 /**
  * @description Get all courses or courses for a specific bootcamp
@@ -11,25 +11,17 @@ import Bootcamp from '@/models/Bootcamp';
  * @route GET /api/v1/bootcamps/:bootcampId/courses
  * @access Public
  */
-const getCourses = asyncHandler(async (req: Request, res: Response) => {
-  let query: Query<Document[], Document>;
-  console.log(req.params.bootcampId);
+const getCourses = asyncHandler(async (req: Request, res: AdvanceResponse) => {
   if (req.params.bootcampId) {
-    query = Course.find({ bootcamp: req.params.bootcampId });
-  } else {
-    query = Course.find().populate({
-      path: 'bootcamp',
-      select: 'name description',
+    const courses = await Course.find({ bootcamp: req.params.bootcampId });
+    res.status(200).json({
+      success: true,
+      count: courses.length,
+      data: courses,
     });
+  } else {
+    res.status(200).json(res.advancedResults);
   }
-
-  const courses = await query;
-
-  res.status(200).json({
-    success: true,
-    count: courses.length,
-    data: courses,
-  });
 });
 
 /**

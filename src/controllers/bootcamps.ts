@@ -2,38 +2,21 @@ import type { NextFunction, Request, Response } from 'express';
 import ErrorResponse from '@/utils/errorResponse';
 import asyncHandler from '@/middleware/async';
 import Bootcamp from '@/models/Bootcamp';
-import {
-  handleQueryFields,
-  queryPagination,
-  parseQuery,
-} from '@/middleware/query';
-import type { QueryInput } from '@/types/queryTypes';
+import type { AdvanceResponse } from '@/types/queryTypes';
 import geocoder from '@/utils/geocoder';
-import type { Document, Query } from 'mongoose';
+import type { UploadedFile } from 'express-fileupload';
+import path from 'path';
 
 /**
  * @description Get all bootcamps
  * @route GET /api/v1/bootcamps
  * @access Public
  */
-const getBootcamps = asyncHandler(async (req: Request, res: Response) => {
-  const mongooseQuery = parseQuery(req.query as QueryInput);
-
-  let query: Query<Document[], Document> =
-    Bootcamp.find(mongooseQuery).populate('courses');
-
-  query = handleQueryFields(req, query);
-
-  const { query: queryObject, pagination } = await queryPagination(req, query);
-
-  const bootcamps = await queryObject;
-  res.status(200).json({
-    success: true,
-    count: bootcamps.length,
-    pagination,
-    data: bootcamps,
-  });
-});
+const getBootcamps = asyncHandler(
+  async (req: Request, res: AdvanceResponse) => {
+    res.status(200).json(res.advancedResults);
+  }
+);
 
 /**
  * @description Get a single bootcamp
@@ -136,6 +119,64 @@ const getBootcampsInRadius = asyncHandler(
   }
 );
 
+/**
+ * @description Upload photo for bootcamp
+ * @route PUT /api/v1/bootcamps/:id/photo
+ * @access Private
+ */
+const uploadBootcampPhoto = asyncHandler(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const bootcamp = await Bootcamp.findById(req.params.id);
+    if (!bootcamp) {
+      return next(
+        new ErrorResponse(
+          `Bootcamp not found with this ID ${req.params.id}`,
+          404
+        )
+      );
+    }
+
+    if (!req.files) {
+      return next(new ErrorResponse(`Please upload a file`, 400));
+    }
+
+    const file = req.files.file as UploadedFile;
+
+    // Make sure the image is a photo
+    if (!file.mimetype.startsWith('image')) {
+      return next(new ErrorResponse(`Please upload an image file`, 400));
+    }
+
+    // Check file size
+    if (file.size > parseInt(process.env.MAX_FILE_UPLOAD as string)) {
+      return next(
+        new ErrorResponse(
+          `Please upload an image less than ${parseInt(process.env.MAX_FILE_UPLOAD as string)}`,
+          400
+        )
+      );
+    }
+
+    // Create custom filename
+    file.name = `photo_${bootcamp._id}${path.parse(file.name).ext}`;
+
+    // Make sure the directory exists
+    await file.mv(
+      path.join(process.env.FILE_UPLOAD_PATH as string, file.name),
+      async err => {
+        if (err) {
+          console.log(err);
+          return next(new ErrorResponse(`Problem with file upload`, 500));
+        }
+      }
+    );
+
+    await bootcamp.updateOne({ photo: file.name });
+
+    res.status(200).json({ success: true, data: bootcamp });
+  }
+);
+
 export {
   getBootcamps,
   getBootcamp,
@@ -143,4 +184,5 @@ export {
   updateBootcamp,
   deleteBootcamp,
   getBootcampsInRadius,
+  uploadBootcampPhoto,
 };
