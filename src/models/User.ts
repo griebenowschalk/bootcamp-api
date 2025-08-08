@@ -82,7 +82,7 @@ UserSchema.methods.matchPassword = async function (enteredPassword: string) {
 
 // Generate and hash password token
 UserSchema.methods.getResetPasswordToken = function () {
-  // Generate token
+  // Generate token to send to the user
   const resetToken = crypto.randomBytes(20).toString('hex');
 
   // Hash token and set to resetPasswordToken field
