@@ -21,6 +21,7 @@ connectDB();
 import bootcamps from '@/routes/bootcamps';
 import courses from '@/routes/courses';
 import auth from '@/routes/auth';
+import users from '@/routes/users';
 
 const app = express();
 
@@ -45,6 +46,7 @@ app.use(express.static(path.join(process.cwd(), 'public')));
 app.use('/api/v1/bootcamps', bootcamps);
 app.use('/api/v1/courses', courses);
 app.use('/api/v1/auth', auth);
+app.use('/api/v1/users', users);
 
 // Error handler
 app.use(errorHandler);
