@@ -56,6 +56,17 @@ const login = asyncHandler(
   }
 );
 
+/**
+ * @description Logout user
+ * @route GET /api/v1/auth/logout
+ * @access Private
+ */
+const logout = asyncHandler(async (req: UserRequest, res: Response) => {
+  res.cookie('token', 'none', { expires: new Date(Date.now() + 10 * 1000) });
+
+  res.status(200).json({ success: true, data: {} });
+});
+
 // Get token from model, create cookie and send response
 const sendTokenResponse = (user: IUser, statusCode: number, res: Response) => {
   const token = user.getSignedJwtToken();
@@ -206,4 +217,5 @@ export {
   resetPassword,
   updateDetails,
   updatePassword,
+  logout,
 };

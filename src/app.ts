@@ -4,6 +4,7 @@ import dotenv from 'dotenv';
 dotenv.config({ path: './config/config.env' });
 
 import express from 'express';
+import helmet from 'helmet';
 import cors from 'cors';
 import morgan from 'morgan';
 import fileUpload from 'express-fileupload';
@@ -13,6 +14,10 @@ import 'colors';
 import connectDB from '@/config/db';
 import errorHandler from '@/middleware/error';
 import asyncHandler from '@/middleware/async';
+import { sanitizeRequest } from '@/middleware/sanitize';
+import xssClean from 'xss-clean';
+import rateLimit from 'express-rate-limit';
+import hpp from 'hpp';
 
 // Connect to database
 connectDB();
@@ -30,9 +35,30 @@ const app = express();
 if (process.env.NODE_ENV === 'development') {
   app.use(morgan('dev'));
 }
+
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+// Sanitize data
+app.use(sanitizeRequest);
+
+// Set security headers
+app.use(helmet());
+
+// Prevent XSS attacks
+app.use(xssClean());
+
+// Rate limiting
+app.use(
+  rateLimit({
+    windowMs: 10 * 60 * 1000, // 10 minutes
+    max: 100,
+  })
+);
+
+// Prevent http param pollution
+app.use(hpp());
 
 // File uploading
 app.use(fileUpload());

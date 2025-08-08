@@ -6,7 +6,7 @@
     "module": "ESNext",
     "moduleResolution": "bundler",
     "target": "esnext",
-    "types": ["node"],
+    "types": ["node", "xss-clean-types"],
     "lib": ["esnext"],
 
     // Other Outputs
