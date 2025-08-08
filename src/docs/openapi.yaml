@@ -490,6 +490,461 @@ paths:
                     items:
                       $ref: '#/components/schemas/Bootcamp'
 
+  /courses:
+    get:
+      summary: Get all courses
+      description: Retrieve a list of all courses
+      tags: [Courses]
+      parameters:
+        - in: query
+          name: select
+          schema:
+            type: string
+          description: Fields to include in response
+        - in: query
+          name: sort
+          schema:
+            type: string
+          description: Sort order
+        - in: query
+          name: page
+          schema:
+            type: integer
+          description: Page number
+        - in: query
+          name: limit
+          schema:
+            type: integer
+          description: Results per page
+      responses:
+        '200':
+          description: List of courses
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  count:
+                    type: integer
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Course'
+
+    post:
+      summary: Create a course
+      description: Add a new course to a bootcamp (publisher/admin only)
+      tags: [Courses]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Course'
+      responses:
+        '201':
+          description: Course created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: '#/components/schemas/Course'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+
+  /courses/{id}:
+    get:
+      summary: Get single course
+      description: Retrieve a course by its ID
+      tags: [Courses]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: Course ID
+      responses:
+        '200':
+          description: Course found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: '#/components/schemas/Course'
+        '404':
+          description: Course not found
+
+    put:
+      summary: Update course
+      description: Update a course by its ID (publisher/admin only)
+      tags: [Courses]
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: Course ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Course'
+      responses:
+        '200':
+          description: Course updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: '#/components/schemas/Course'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '404':
+          description: Course not found
+
+    delete:
+      summary: Delete course
+      description: Delete a course by its ID (publisher/admin only)
+      tags: [Courses]
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: Course ID
+      responses:
+        '200':
+          description: Course deleted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '404':
+          description: Course not found
+
+  /bootcamps/{bootcampId}/courses:
+    get:
+      summary: Get courses for a bootcamp
+      description: Retrieve all courses for a specific bootcamp
+      tags: [Courses]
+      parameters:
+        - in: path
+          name: bootcampId
+          required: true
+          schema:
+            type: string
+          description: Bootcamp ID
+      responses:
+        '200':
+          description: List of courses for bootcamp
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  count:
+                    type: integer
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Course'
+        '404':
+          description: Bootcamp not found
+
+    post:
+      summary: Add course to bootcamp
+      description: Add a new course to a specific bootcamp (publisher/admin only)
+      tags: [Courses]
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: bootcampId
+          required: true
+          schema:
+            type: string
+          description: Bootcamp ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Course'
+      responses:
+        '201':
+          description: Course created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: '#/components/schemas/Course'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '404':
+          description: Bootcamp not found
+
+  /reviews:
+    get:
+      summary: Get all reviews
+      description: Retrieve a list of all reviews
+      tags: [Reviews]
+      responses:
+        '200':
+          description: List of reviews
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  count:
+                    type: integer
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Review'
+
+    post:
+      summary: Create a review
+      description: Add a new review (user only, must be logged in)
+      tags: [Reviews]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Review'
+      responses:
+        '201':
+          description: Review created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: '#/components/schemas/Review'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+
+  /reviews/{id}:
+    get:
+      summary: Get single review
+      description: Retrieve a review by its ID
+      tags: [Reviews]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: Review ID
+      responses:
+        '200':
+          description: Review found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: '#/components/schemas/Review'
+        '404':
+          description: Review not found
+
+    put:
+      summary: Update review
+      description: Update a review by its ID (review owner/admin only)
+      tags: [Reviews]
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: Review ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Review'
+      responses:
+        '200':
+          description: Review updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: '#/components/schemas/Review'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '404':
+          description: Review not found
+
+    delete:
+      summary: Delete review
+      description: Delete a review by its ID (review owner/admin only)
+      tags: [Reviews]
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: Review ID
+      responses:
+        '200':
+          description: Review deleted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '404':
+          description: Review not found
+
+  /bootcamps/{bootcampId}/reviews:
+    get:
+      summary: Get reviews for a bootcamp
+      description: Retrieve all reviews for a specific bootcamp
+      tags: [Reviews]
+      parameters:
+        - in: path
+          name: bootcampId
+          required: true
+          schema:
+            type: string
+          description: Bootcamp ID
+      responses:
+        '200':
+          description: List of reviews for bootcamp
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  count:
+                    type: integer
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Review'
+        '404':
+          description: Bootcamp not found
+
+    post:
+      summary: Add review to bootcamp
+      description: Add a new review to a specific bootcamp (user only, must be logged in)
+      tags: [Reviews]
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: bootcampId
+          required: true
+          schema:
+            type: string
+          description: Bootcamp ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Review'
+      responses:
+        '201':
+          description: Review created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: '#/components/schemas/Review'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '404':
+          description: Bootcamp not found
+
   /auth/register:
     post:
       summary: Register a new user
