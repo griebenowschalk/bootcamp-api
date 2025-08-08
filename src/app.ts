@@ -1,5 +1,9 @@
-import express from 'express';
 import dotenv from 'dotenv';
+
+// Load environment variables FIRST, before any other imports
+dotenv.config({ path: './config/config.env' });
+
+import express from 'express';
 import cors from 'cors';
 import morgan from 'morgan';
 import fileUpload from 'express-fileupload';
@@ -9,9 +13,6 @@ import 'colors';
 import connectDB from '@/config/db';
 import errorHandler from '@/middleware/error';
 import asyncHandler from '@/middleware/async';
-
-// Load environment variables
-dotenv.config({ path: './config/config.env' });
 
 // Connect to database
 connectDB();

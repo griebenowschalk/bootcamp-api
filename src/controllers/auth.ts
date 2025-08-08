@@ -3,7 +3,9 @@ import asyncHandler from '@/middleware/async';
 import User from '@/models/User';
 import type { IUser } from '@/models/User';
 import ErrorResponse from '@/utils/errorResponse';
+import { sendPasswordResetEmail } from '@/utils/sendEmail';
 import type { UserRequest } from '@/types/queryTypes';
+import { hashToken } from '@/utils/security';
 
 /**
  * @description Register user
@@ -85,20 +87,74 @@ const getMe = asyncHandler(async (req: UserRequest, res: Response) => {
 /**
  * @description Forgot password
  * @route POST /api/v1/auth/forgotpassword
- * @access Private
+ * @access Public
  */
 const forgotPassword = asyncHandler(
   async (req: Request, res: Response, next: NextFunction) => {
-    const user = await User.findOne({ email: req.body.email });
+    const user = (await User.findOne({
+      email: req.body.email,
+    })) as IUser;
 
     if (!user) {
       return next(new ErrorResponse('There is no user with that email', 404));
     }
 
-    user.getResetPasswordToken();
+    // Get reset token
+    const resetToken = user.getResetPasswordToken();
+
     await user.save({ validateBeforeSave: false });
-    res.status(200).json({ success: true, data: user });
+
+    // Create reset url
+    const resetUrl = `${req.protocol}://${req.get(
+      'host'
+    )}/api/v1/auth/resetpassword/${resetToken}`;
+
+    try {
+      await sendPasswordResetEmail(user.email, resetUrl);
+
+      res.status(200).json({ success: true, data: 'Email sent' });
+    } catch (err) {
+      console.log(err);
+      user.resetPasswordToken = undefined;
+      user.resetPasswordExpire = undefined;
+
+      await user.save({ validateBeforeSave: false });
+
+      return next(new ErrorResponse('Email could not be sent', 500));
+    }
   }
 );
 
-export { register, login, getMe, forgotPassword };
+/**
+ * @description Reset password
+ * @route PUT /api/v1/auth/resetpassword/:resettoken
+ * @access Public
+ */
+const resetPassword = asyncHandler(
+  async (req: Request, res: Response, next: NextFunction) => {
+    // Get hashed token
+    const resetPasswordToken = hashToken(req.params.resettoken || '');
+
+    const user = await User.findOne({
+      resetPasswordToken,
+      resetPasswordExpire: { $gt: Date.now() },
+    });
+
+    if (!user) {
+      return next(new ErrorResponse('Invalid token', 400));
+    }
+
+    // Set new password
+    user.password = req.body.password;
+    user.resetPasswordToken = undefined;
+    user.resetPasswordExpire = undefined;
+    await user.save();
+
+    res.status(200).json({
+      success: true,
+      token: user.getSignedJwtToken(),
+    });
+  }
+);
+
+export { register, login, getMe, forgotPassword, resetPassword };

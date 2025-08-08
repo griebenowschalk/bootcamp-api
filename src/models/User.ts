@@ -2,14 +2,15 @@ import bcrypt from 'bcryptjs';
 import mongoose, { type Document } from 'mongoose';
 import jwt, { type SignOptions } from 'jsonwebtoken';
 import crypto from 'crypto';
+import { hashToken } from '@/utils/security';
 
 export interface IUser extends Document {
   name: string;
   email: string;
   role: 'user' | 'publisher' | 'admin';
   password: string;
-  resetPasswordToken?: string;
-  resetPasswordExpire?: Date;
+  resetPasswordToken?: string | undefined;
+  resetPasswordExpire?: Date | undefined;
   createdAt: Date;
   getSignedJwtToken(): string;
   matchPassword(enteredPassword: string): Promise<boolean>;
@@ -81,12 +82,15 @@ UserSchema.methods.matchPassword = async function (enteredPassword: string) {
 
 // Generate and hash password token
 UserSchema.methods.getResetPasswordToken = function () {
+  // Generate token
   const resetToken = crypto.randomBytes(20).toString('hex');
-  this.resetPasswordToken = crypto
-    .createHash('sha256')
-    .update(resetToken)
-    .digest('hex');
-  this.resetPasswordExpire = Date.now() + 10 * 60 * 1000;
+
+  // Hash token and set to resetPasswordToken field
+  this.resetPasswordToken = hashToken(resetToken);
+
+  // Set expire
+  this.resetPasswordExpire = Date.now() + 10 * 60 * 1000; // 10 minutes
+
   return resetToken;
 };
 
