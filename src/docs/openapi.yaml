@@ -1,0 +1,677 @@
+openapi: 3.0.0
+info:
+  title: Bootcamp API
+  version: 1.0.0
+  description: A RESTful API for managing bootcamps, courses, and users
+  contact:
+    name: API Support
+    email: support@bootcampapi.com
+
+servers:
+  - url: http://localhost:3000/api/v1
+    description: Development server
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    Bootcamp:
+      type: object
+      required:
+        - name
+        - description
+        - address
+        - careers
+      properties:
+        _id:
+          type: string
+          description: Auto-generated unique identifier
+        name:
+          type: string
+          description: Bootcamp name
+          maxLength: 50
+        slug:
+          type: string
+          description: URL-friendly version of name
+        description:
+          type: string
+          description: Bootcamp description
+          maxLength: 500
+        website:
+          type: string
+          format: uri
+          description: Bootcamp website URL
+        phone:
+          type: string
+          maxLength: 20
+          description: Contact phone number
+        email:
+          type: string
+          format: email
+          description: Contact email
+        address:
+          type: string
+          description: Physical address
+        location:
+          type: object
+          properties:
+            type:
+              type: string
+              enum: [Point]
+            coordinates:
+              type: array
+              items:
+                type: number
+        careers:
+          type: array
+          items:
+            type: string
+            enum:
+              [
+                Web Development,
+                Mobile Development,
+                UI/UX,
+                Data Science,
+                Business,
+                Other,
+              ]
+          description: Available career paths
+        averageRating:
+          type: number
+          minimum: 1
+          maximum: 10
+          description: Average rating from reviews
+        averageCost:
+          type: number
+          description: Average cost of courses
+        photo:
+          type: string
+          description: Photo filename
+        housing:
+          type: boolean
+          description: Whether housing is provided
+        jobAssistance:
+          type: boolean
+          description: Whether job assistance is provided
+        jobGuarantee:
+          type: boolean
+          description: Whether job guarantee is provided
+        acceptGi:
+          type: boolean
+          description: Whether GI Bill is accepted
+        createdAt:
+          type: string
+          format: date-time
+        user:
+          type: string
+          description: User ID who created the bootcamp
+
+    User:
+      type: object
+      required:
+        - name
+        - email
+        - password
+      properties:
+        _id:
+          type: string
+          description: Auto-generated unique identifier
+        name:
+          type: string
+          description: User's full name
+        email:
+          type: string
+          format: email
+          description: User's email address
+        role:
+          type: string
+          enum: [user, publisher, admin]
+          default: user
+          description: User's role in the system
+        createdAt:
+          type: string
+          format: date-time
+
+    Course:
+      type: object
+      required:
+        - title
+        - description
+        - weeks
+        - tuition
+        - minimumSkill
+      properties:
+        _id:
+          type: string
+          description: Auto-generated unique identifier
+        title:
+          type: string
+          description: Course title
+        description:
+          type: string
+          description: Course description
+        weeks:
+          type: number
+          description: Duration in weeks
+        tuition:
+          type: number
+          description: Course tuition cost
+        minimumSkill:
+          type: string
+          enum: [beginner, intermediate, advanced]
+          description: Required skill level
+        scholarshipAvailable:
+          type: boolean
+          default: false
+          description: Whether scholarships are available
+        bootcamp:
+          type: string
+          description: Associated bootcamp ID
+
+    Review:
+      type: object
+      required:
+        - title
+        - text
+        - rating
+      properties:
+        _id:
+          type: string
+          description: Auto-generated unique identifier
+        title:
+          type: string
+          description: Review title
+        text:
+          type: string
+          description: Review content
+        rating:
+          type: number
+          minimum: 1
+          maximum: 10
+          description: Rating from 1-10
+        bootcamp:
+          type: string
+          description: Associated bootcamp ID
+        user:
+          type: string
+          description: User ID who wrote the review
+        createdAt:
+          type: string
+          format: date-time
+
+paths:
+  /bootcamps:
+    get:
+      summary: Get all bootcamps
+      description: Retrieve a list of all bootcamps with optional filtering, sorting, and pagination
+      tags: [Bootcamps]
+      parameters:
+        - in: query
+          name: page
+          schema:
+            type: integer
+            default: 1
+          description: Page number for pagination
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            default: 25
+          description: Number of items per page
+        - in: query
+          name: select
+          schema:
+            type: string
+          description: Fields to select (comma-separated)
+        - in: query
+          name: sort
+          schema:
+            type: string
+          description: Sort fields (comma-separated, prefix with - for descending)
+        - in: query
+          name: averageCost[gte]
+          schema:
+            type: number
+          description: Filter by minimum average cost
+        - in: query
+          name: averageCost[lte]
+          schema:
+            type: number
+          description: Filter by maximum average cost
+        - in: query
+          name: careers[in]
+          schema:
+            type: string
+          description: Filter by careers (comma-separated)
+      responses:
+        '200':
+          description: List of bootcamps
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  count:
+                    type: integer
+                  pagination:
+                    type: object
+                    properties:
+                      next:
+                        type: object
+                        properties:
+                          page:
+                            type: integer
+                          limit:
+                            type: integer
+                      prev:
+                        type: object
+                        properties:
+                          page:
+                            type: integer
+                          limit:
+                            type: integer
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Bootcamp'
+
+    post:
+      summary: Create a new bootcamp
+      description: Create a new bootcamp (requires publisher or admin role)
+      tags: [Bootcamps]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+                - description
+                - address
+                - careers
+              properties:
+                name:
+                  type: string
+                  maxLength: 50
+                description:
+                  type: string
+                  maxLength: 500
+                website:
+                  type: string
+                  format: uri
+                phone:
+                  type: string
+                  maxLength: 20
+                email:
+                  type: string
+                  format: email
+                address:
+                  type: string
+                careers:
+                  type: array
+                  items:
+                    type: string
+                    enum:
+                      [
+                        Web Development,
+                        Mobile Development,
+                        UI/UX,
+                        Data Science,
+                        Business,
+                        Other,
+                      ]
+                averageCost:
+                  type: number
+                housing:
+                  type: boolean
+                jobAssistance:
+                  type: boolean
+                jobGuarantee:
+                  type: boolean
+                acceptGi:
+                  type: boolean
+      responses:
+        '201':
+          description: Bootcamp created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: '#/components/schemas/Bootcamp'
+        '400':
+          description: Bad request - validation error
+        '401':
+          description: Unauthorized - authentication required
+        '403':
+          description: Forbidden - insufficient permissions
+
+  /bootcamps/{id}:
+    get:
+      summary: Get a single bootcamp
+      description: Retrieve a specific bootcamp by ID
+      tags: [Bootcamps]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: Bootcamp ID
+      responses:
+        '200':
+          description: Bootcamp found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: '#/components/schemas/Bootcamp'
+        '404':
+          description: Bootcamp not found
+
+    put:
+      summary: Update a bootcamp
+      description: Update an existing bootcamp (requires ownership or admin role)
+      tags: [Bootcamps]
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: Bootcamp ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Bootcamp'
+      responses:
+        '200':
+          description: Bootcamp updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: '#/components/schemas/Bootcamp'
+        '401':
+          description: Unauthorized - authentication required
+        '403':
+          description: Forbidden - insufficient permissions
+        '404':
+          description: Bootcamp not found
+
+    delete:
+      summary: Delete a bootcamp
+      description: Delete a bootcamp (requires ownership or admin role)
+      tags: [Bootcamps]
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: Bootcamp ID
+      responses:
+        '200':
+          description: Bootcamp deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: '#/components/schemas/Bootcamp'
+        '401':
+          description: Unauthorized - authentication required
+        '403':
+          description: Forbidden - insufficient permissions
+        '404':
+          description: Bootcamp not found
+
+  /bootcamps/radius/{zipcode}/{distance}:
+    get:
+      summary: Get bootcamps within radius
+      description: Find bootcamps within a specified radius of a zipcode
+      tags: [Bootcamps]
+      parameters:
+        - in: path
+          name: zipcode
+          required: true
+          schema:
+            type: string
+          description: Zipcode to search from
+        - in: path
+          name: distance
+          required: true
+          schema:
+            type: string
+          description: Distance in miles
+      responses:
+        '200':
+          description: Bootcamps found within radius
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  count:
+                    type: integer
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Bootcamp'
+
+  /auth/register:
+    post:
+      summary: Register a new user
+      description: Create a new user account
+      tags: [Authentication]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+                - email
+                - password
+              properties:
+                name:
+                  type: string
+                  description: User's full name
+                email:
+                  type: string
+                  format: email
+                  description: User's email address
+                password:
+                  type: string
+                  minLength: 6
+                  description: User's password
+                role:
+                  type: string
+                  enum: [user, publisher]
+                  default: user
+                  description: User's role
+      responses:
+        '200':
+          description: User registered successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  token:
+                    type: string
+                    description: JWT token
+        '400':
+          description: Bad request - validation error
+
+  /auth/login:
+    post:
+      summary: Login user
+      description: Authenticate user and return JWT token
+      tags: [Authentication]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - password
+              properties:
+                email:
+                  type: string
+                  format: email
+                  description: User's email address
+                password:
+                  type: string
+                  description: User's password
+      responses:
+        '200':
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  token:
+                    type: string
+                    description: JWT token
+        '401':
+          description: Invalid credentials
+
+  /auth/me:
+    get:
+      summary: Get current user
+      description: Get the currently authenticated user's information
+      tags: [Authentication]
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: User information retrieved
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: '#/components/schemas/User'
+        '401':
+          description: Unauthorized - authentication required
+
+  /auth/forgotpassword:
+    post:
+      summary: Forgot password
+      description: Send password reset email
+      tags: [Authentication]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+              properties:
+                email:
+                  type: string
+                  format: email
+                  description: User's email address
+      responses:
+        '200':
+          description: Password reset email sent
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: string
+                    description: Confirmation message
+        '404':
+          description: User not found
+
+  /auth/resetpassword/{resettoken}:
+    put:
+      summary: Reset password
+      description: Reset password using token from email
+      tags: [Authentication]
+      parameters:
+        - in: path
+          name: resettoken
+          required: true
+          schema:
+            type: string
+          description: Password reset token
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - password
+              properties:
+                password:
+                  type: string
+                  minLength: 6
+                  description: New password
+      responses:
+        '200':
+          description: Password reset successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  token:
+                    type: string
+                    description: JWT token
+        '400':
+          description: Invalid or expired token
+
+security:
+  - bearerAuth: []

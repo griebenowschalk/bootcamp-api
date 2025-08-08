@@ -15,7 +15,7 @@ import connectDB from '@/config/db';
 import errorHandler from '@/middleware/error';
 import asyncHandler from '@/middleware/async';
 import { sanitizeRequest } from '@/middleware/sanitize';
-import xssClean from 'xss-clean';
+import { xssProtection } from '@/middleware/xss';
 import rateLimit from 'express-rate-limit';
 import hpp from 'hpp';
 
@@ -47,7 +47,7 @@ app.use(sanitizeRequest);
 app.use(helmet());
 
 // Prevent XSS attacks
-app.use(xssClean());
+app.use(xssProtection);
 
 // Rate limiting
 app.use(

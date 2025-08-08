@@ -38,7 +38,8 @@
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.17.0",
     "morgan": "^1.10.1",
-    "resend": "^6.0.0"
+    "resend": "^6.0.0",
+    "xss": "^1.0.15"
   },
   "devDependencies": {
     "@types/bcryptjs": "^2.4.6",
@@ -72,7 +73,6 @@
     "ts-node-dev": "^2.0.0",
     "tsx": "^4.20.3",
     "typescript": "^5.9.2",
-    "xss-clean": "^0.1.4",
     "xss-clean-types": "^1.0.2"
   }
 }
