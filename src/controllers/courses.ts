@@ -31,18 +31,16 @@ const getCourses = asyncHandler(async (req: Request, res: AdvanceResponse) => {
  */
 const getCourse = asyncHandler(
   async (req: Request, res: Response, next: NextFunction) => {
-    let course = await Course.findById(req.params.id);
+    let course = await Course.findById(req.params.id).populate({
+      path: 'bootcamp',
+      select: 'name description',
+    });
 
     if (!course) {
       return next(
         new ErrorResponse(`Course not found with this ID ${req.params.id}`, 404)
       );
     }
-
-    course = await Course.findByIdAndUpdate(req.params.id, req.body, {
-      new: true,
-      runValidators: true,
-    });
 
     res.status(200).json({
       success: true,

@@ -15,11 +15,13 @@ import Bootcamp, { type IBootcamp } from '@/models/Bootcamp';
 // Include other resource routers
 import courseRouter from '@/routes/courses';
 import type { Model, PopulateOptions } from 'mongoose';
+import reviewRouter from '@/routes/reviews';
 
 const router = express.Router();
 
 // Re-route into other resource routers
 router.use('/:bootcampId/courses', courseRouter);
+router.use('/:bootcampId/reviews', reviewRouter);
 
 router.get('/radius/:zipcode/:distance', getBootcampsInRadius);
 
