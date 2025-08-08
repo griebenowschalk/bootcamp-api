@@ -39,7 +39,9 @@
     "mongoose": "^8.17.0",
     "morgan": "^1.10.1",
     "resend": "^6.0.0",
-    "xss": "^1.0.15"
+    "xss": "^1.0.15",
+    "swagger-ui-express": "^5.0.1",
+    "yaml": "^2.8.1"
   },
   "devDependencies": {
     "@types/bcryptjs": "^2.4.6",
@@ -53,6 +55,7 @@
     "@types/mongo-sanitize": "^1.0.3",
     "@types/node": "^24.1.0",
     "@types/node-geocoder": "^4.2.6",
+    "@types/swagger-ui-express": "^4.1.8",
     "@typescript-eslint/eslint-plugin": "^8.38.0",
     "@typescript-eslint/parser": "^8.38.0",
     "colors": "^1.4.0",

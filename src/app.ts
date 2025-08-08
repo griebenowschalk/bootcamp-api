@@ -18,6 +18,9 @@ import { sanitizeRequest } from '@/middleware/sanitize';
 import { xssProtection } from '@/middleware/xss';
 import rateLimit from 'express-rate-limit';
 import hpp from 'hpp';
+import swaggerUi from 'swagger-ui-express';
+import fs from 'fs';
+import yaml from 'yaml';
 
 // Connect to database
 connectDB();
@@ -75,6 +78,23 @@ app.use('/api/v1/courses', courses);
 app.use('/api/v1/auth', auth);
 app.use('/api/v1/users', users);
 app.use('/api/v1/reviews', reviews);
+
+// Swagger Documentation
+{
+  const openapiPath = path.join(process.cwd(), 'src', 'docs', 'openapi.yaml');
+  if (fs.existsSync(openapiPath)) {
+    const fileContent = fs.readFileSync(openapiPath, 'utf8');
+    const specs = yaml.parse(fileContent);
+    app.use('/docs', swaggerUi.serve, swaggerUi.setup(specs));
+  } else {
+    app.get('/docs', (_req, res) =>
+      res.status(404).json({
+        success: false,
+        error: 'OpenAPI specification not found',
+      })
+    );
+  }
+}
 
 // Error handler
 app.use(errorHandler);
